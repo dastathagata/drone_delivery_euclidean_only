@@ -1,0 +1,8 @@
+{
+    "X_Axis": 5000,
+    "Y_Axis": 5000,
+    "Drone_Capacity": [3, 5, 7, 9, 11],
+    "Number_of_Target": [80, 100, 120, 140, 160],
+    "Verbose": 0,
+    "Save_Result": 1
+}
