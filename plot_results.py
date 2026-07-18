@@ -23,7 +23,7 @@ def plot_algorithm_comparison_scd_dcd(df, capacity, out_dir):
     plt.xlabel("Number of Targets")
     plt.ylabel("TFL (KM)")
 
-    plt.title(f"Capacity = {capacity}")
+    plt.title(f"Single and Double Capacity")
 
     plt.grid(axis='y',alpha=0.3)
 
@@ -31,7 +31,7 @@ def plot_algorithm_comparison_scd_dcd(df, capacity, out_dir):
 
     plt.tight_layout()
 
-    plt.savefig(os.path.join(out_dir, f"fig1_scd_dcd_cap_{capacity}.pdf"), bbox_inches="tight")
+    plt.savefig(os.path.join(out_dir, f"fig1_scd_dcd.pdf"), bbox_inches="tight")
 
     plt.close()
 
@@ -190,8 +190,8 @@ def plot_results(excel_file):
     for cap in capacities:
         plot_algorithm_comparison(df, cap, out_dir)
 
-    for cap in capacities:
-        plot_algorithm_comparison_scd_dcd(df, cap, out_dir)
+
+    plot_algorithm_comparison_scd_dcd(df, cap, out_dir)
 
     print("Generating Figure 2 (Capacity Effect)...")
     for tgt in targets:

@@ -402,3 +402,69 @@ def ref_lower_bound_calculation(target_loc_xy, drone_cap):
     #print(f"LB_TSP: {LB_TSP}, LB_Radial: {LB_Radial}")
 
     return max(LB_TSP, LB_Radial)
+
+def k_cap_drone_total_traversal_gmtp_plot(target_loc_xy, drone_cap, debug=False):
+
+    # Christofides Tour
+    tsp_tour, _ = chistofide_tsp(target_loc_xy)
+
+    # Remove duplicated last node
+    if tsp_tour[0] == tsp_tour[-1]:
+        tsp_tour = tsp_tour[:-1]
+
+    min_tfl = float("inf")
+
+    # Best solution
+    best_dp = None
+    best_shift = None
+    best_partitions = None
+    best_boundary_nodes = None
+
+    # Evaluate all shifts
+    for shift in range(drone_cap):
+
+        partitions = create_shifted_partitions(
+            tsp_tour,
+            drone_cap,
+            shift
+        )
+
+        boundary_nodes = []
+
+        for part in partitions:
+
+            boundary_nodes.append(target_loc_xy[part[0]])
+            boundary_nodes.append(target_loc_xy[part[-1]])
+
+        boundary_nodes = np.array(boundary_nodes)
+
+        dp = dpd_comm.geometric_median(boundary_nodes)
+
+        tfl = compute_partition_set_tfl(
+            dp,
+            partitions,
+            target_loc_xy
+        )
+
+        if tfl < min_tfl:
+
+            min_tfl = tfl
+
+            best_dp = dp
+            best_shift = shift
+            best_partitions = [p.copy() for p in partitions]
+            best_boundary_nodes = boundary_nodes.copy()
+
+    if debug:
+
+        return {
+            "tfl": min_tfl,
+            "dp": best_dp,
+            "tour": tsp_tour,
+            "shift": best_shift,
+            "partitions": best_partitions,
+            "boundary_nodes": best_boundary_nodes,
+            "target_loc_xy": target_loc_xy
+}
+
+    return min_tfl
