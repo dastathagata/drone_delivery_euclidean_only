@@ -4,6 +4,38 @@ import numpy as np
 import os
 
 
+def plot_algorithm_comparison_scd_dcd(df, capacity, out_dir):
+
+    data = df[df["Drone Capacity"] == capacity]
+
+    targets = data["Targets"].values
+
+    x = np.arange(len(targets))
+    width = 0.18
+
+    plt.figure(figsize=(3.4,2.8))
+
+    plt.bar(x-1.5*width,data["SCP"],width,label="SCD")
+    plt.bar(x-0.5*width,data["DCP"],width,label="DCD")
+
+    plt.xticks(x,targets)
+
+    plt.xlabel("Number of Targets")
+    plt.ylabel("TFL (KM)")
+
+    plt.title(f"Capacity = {capacity}")
+
+    plt.grid(axis='y',alpha=0.3)
+
+    plt.legend(fontsize=6)
+
+    plt.tight_layout()
+
+    plt.savefig(os.path.join(out_dir, f"fig1_scd_dcd_cap_{capacity}.pdf"), bbox_inches="tight")
+
+    plt.close()
+
+
 ##########################################################################
 # Figure 1
 # LE vs GMTP vs Lower Bounds
@@ -22,8 +54,6 @@ def plot_algorithm_comparison(df, capacity, out_dir):
 
     plt.bar(x-1.5*width,data["LE"],width,label="LE")
     plt.bar(x-0.5*width,data["GMTP"],width,label="GMTP")
-    plt.bar(x+0.5*width,data["LB"],width,label="LB")
-    plt.bar(x+1.5*width,data["RLB"],width,label="Ref LB")
 
     plt.xticks(x,targets)
 
@@ -59,8 +89,6 @@ def plot_capacity_effect(df, targets, out_dir):
 
     plt.figure(figsize=(3.4,2.8))
 
-    plt.bar(x-1.5*width,data["SCP"],width,label="SCD")
-    plt.bar(x-0.5*width,data["DCP"],width,label="DCD")
     plt.bar(x+0.5*width,data["LE"],width,label="LE")
     plt.bar(x+1.5*width,data["GMTP"],width,label="GMTP")
 
@@ -76,9 +104,6 @@ def plot_capacity_effect(df, targets, out_dir):
     plt.legend(fontsize=6)
 
     plt.tight_layout()
-
-    #plt.savefig(f"fig2_targets_{targets}.pdf",
-    #            bbox_inches="tight")
     
     plt.savefig(os.path.join(out_dir, f"fig2_cap_{targets}.pdf"), bbox_inches="tight")
 
@@ -133,10 +158,7 @@ def plot_gap(df, capacity, out_dir):
 
     plt.tight_layout()
 
-    #plt.savefig(f"fig3_gap_cap_{capacity}.pdf",
-    #            bbox_inches="tight")
     plt.savefig(os.path.join(out_dir, f"fig3_cap_{capacity}.pdf"), bbox_inches="tight")
-
 
     plt.close()
 
@@ -144,37 +166,6 @@ def plot_gap(df, capacity, out_dir):
 ##########################################################################
 # Driver Function
 ##########################################################################
-
-def generate_all_plots(csv_file):
-
-    df = pd.read_csv(csv_file)
-
-    capacities = sorted(df["Drone Capacity"].unique())
-
-    targets = sorted(df["Targets"].unique())
-
-    #########################################################
-    # Figure 1
-    #########################################################
-
-    for c in capacities:
-        plot_algorithm_comparison(df,c)
-
-    #########################################################
-    # Figure 2
-    #########################################################
-
-    for t in targets:
-        plot_capacity_effect(df,t)
-
-    #########################################################
-    # Figure 3
-    #########################################################
-
-    for c in capacities:
-        plot_gap(df,c)
-
-    print("All plots generated successfully.")
 
 def plot_results(excel_file):
     """
@@ -199,13 +190,17 @@ def plot_results(excel_file):
     for cap in capacities:
         plot_algorithm_comparison(df, cap, out_dir)
 
+    for cap in capacities:
+        plot_algorithm_comparison_scd_dcd(df, cap, out_dir)
+
     print("Generating Figure 2 (Capacity Effect)...")
     for tgt in targets:
-        plot_capacity_effect(df, tgt, out_dir)
+        if (tgt == 140):
+            plot_capacity_effect(df, tgt, out_dir)
 
-    print("Generating Figure 3 (Approximation Gap)...")
-    for cap in capacities:
-        plot_gap(df, cap, out_dir)
+    #print("Generating Figure 3 (Approximation Gap)...")
+    #for cap in capacities:
+    #    plot_gap(df, cap, out_dir)
 
     print("\nAll figures generated successfully.")
 
