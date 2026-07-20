@@ -30,7 +30,7 @@ def generate_approximation_table(input_file,
         k = int(row["Drone Capacity"])
 
         # Theoretical approximation ratio
-        theoretical = 1 + (2.0 / 3.0) * (1.0 - 1.0 / k)
+        theoretical = 1 + (3.0 / 2.0) * (1.0 - 1.0 / k)
 
         # Stronger lower bound
         stronger_lb = max(row["LB"],
