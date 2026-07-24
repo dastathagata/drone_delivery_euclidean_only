@@ -245,6 +245,7 @@ def main():
 
     print("Euclidean area  X=%d, Y=%d" % (config["X_Axis"], config["Y_Axis"]))
     results = []
+    results_lb = []
 
     NO_OF_RUNS = 20
 
@@ -267,12 +268,16 @@ def main():
         gmtp_list = {}
         lb_list = {}
         ref_lb_list = {}
+        le_ratio_list = {}
+        gmtp_ratio_list = {}
 
         for cap in config["Drone_Capacity"]:
             le_list[cap] = []
             gmtp_list[cap] = []
             lb_list[cap] = []
             ref_lb_list[cap] = []
+            le_ratio_list[cap] = []
+            gmtp_ratio_list[cap] = []
 
         ####################################################
         # Repeat same experiment 20 times
@@ -286,8 +291,8 @@ def main():
             no_of_target = len(target_loc_xy)
             loc = np.arange(no_of_target)
 
-            if (save == 2):
-                plot_selected_customers(target_loc_xy, no_of_target, iteration, save_pdf=True)
+            #if (save == 2):
+            #    plot_selected_customers(target_loc_xy, no_of_target, iteration, save_pdf=True)
                 
             save = save+1
 
@@ -310,13 +315,7 @@ def main():
                     no_of_cluster = no_of_target
                 
                 # Longest Edge
-                total_le = dpd_kc.k_cap_drone_total_traversal_longest_edge(
-                                                    target_loc_xy, 
-                                                    no_of_target, 
-                                                    drone_cap, 
-                                                    loc, 
-                                                    target_demand, 
-                                                    no_of_cluster)
+                total_le = dpd_kc.k_cap_drone_total_traversal_longest_edge(target_loc_xy, no_of_target, drone_cap, loc, target_demand, no_of_cluster)
                 le_list[drone_cap].append(total_le)
 
                 # GMTP
@@ -331,6 +330,13 @@ def main():
                 ref_lower_bound = dpd_kc.ref_lower_bound_calculation(target_loc_xy, drone_cap)
                 ref_lb_list[drone_cap].append(ref_lower_bound)
 
+                max_lb = max(lower_bound, ref_lower_bound)
+                #print(max_lb, lower_bound, ref_lower_bound)
+                le_ratio = total_le / max_lb
+                gmtp_ratio = total_gmtp / max_lb
+                le_ratio_list[drone_cap].append(le_ratio)
+                gmtp_ratio_list[drone_cap].append(gmtp_ratio)
+
         # Compute averages
         avg_single = np.mean(total_single_list)
         avg_double = np.mean(total_double_list)
@@ -340,6 +346,8 @@ def main():
             avg_gmtp = np.mean(gmtp_list[drone_cap])
             avg_lb = np.mean(lb_list[drone_cap])
             avg_ref_lb = np.mean(ref_lb_list[drone_cap])
+            avg_le_ratio = np.mean(le_ratio_list[drone_cap])
+            avg_gmtp_ratio = np.mean(gmtp_ratio_list[drone_cap])
 
             results.append({
                 "Targets": no_of_target,
@@ -349,14 +357,38 @@ def main():
                 "LE": round(avg_le / 1000, 2),
                 "GMTP": round(avg_gmtp / 1000, 2),
                 "LB": round(avg_lb / 1000, 2),
-                "RLB": round(avg_ref_lb / 1000, 2)
+                "RLB": round(avg_ref_lb / 1000, 2),
+                "LE_Ratio": round(avg_le_ratio, 2),
+                "GMTP_Ratio": round(avg_gmtp_ratio, 2)
             })
+
+            if (drone_cap == 5) and (no_of_target == 100):
+                #print("Lower Bound list:", lb_list[drone_cap])
+                #print("Ref Lower Bound list:", ref_lb_list[drone_cap])
+                for run, (lb, rlb) in enumerate(zip(lb_list[drone_cap],
+                                        ref_lb_list[drone_cap]), start=1):
+                    results_lb.append({
+                        "Run": run,
+                        "Targets": no_of_target,
+                        "Drone Capacity": drone_cap,
+                        "LB": round(lb / 1000, 2),
+                        "RLB": round(rlb / 1000, 2)
+                    })
 
     # Save results
     if (config["Save_Result"] == 1):
-        df = pd.DataFrame(results)
-        df.to_excel("Drone_Final_Data.xlsx", index=False)
-        print(df)
+        summary_df = pd.DataFrame(results)
+        lb_df = pd.DataFrame(results_lb)
+
+        with pd.ExcelWriter("Drone_Final_Data.xlsx",
+                    engine="openpyxl") as writer:
+
+            summary_df.to_excel(writer, sheet_name="Summary", index=False)
+
+            lb_df.to_excel(writer, sheet_name="LowerBounds",index=False)
+
+        print(summary_df)
+        print(lb_df)
 
 if __name__ == "__main__":
     main()

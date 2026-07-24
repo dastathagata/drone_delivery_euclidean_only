@@ -343,14 +343,18 @@ def k_cap_drone_total_traversal_gmtp(target_loc_xy, drone_cap):
     if tsp_tour[0] == tsp_tour[-1]:
         tsp_tour = tsp_tour[:-1]
 
-    n = len(tsp_tour)
-    n_c = (int) (np.ceil(n/drone_cap))
 
+
+    n = len(tsp_tour)
     min_tfl = float("inf")
-    best_dp = None
 
     # Evaluate all shifts
-    for shift in range(drone_cap):
+    if ((n % drone_cap) == 0):
+        loop_limit = drone_cap
+    else:
+        loop_limit = n
+    print("loop_limit:",loop_limit)
+    for shift in range(loop_limit):
 
         partitions = create_shifted_partitions(tsp_tour, drone_cap, shift)
 
@@ -386,7 +390,7 @@ def ref_lower_bound_calculation(target_loc_xy, drone_cap):
     dp = dpd_comm.geometric_median(target_loc_xy)
 
     # Christofides tour
-    christofides_tour, christofides_length = chistofide_tsp(target_loc_xy)
+    _, christofides_length = chistofide_tsp(target_loc_xy)
 
     # Average radial distance
     total_distance = dpd_sc.drone_totalpath_traversal_single_capacity(
